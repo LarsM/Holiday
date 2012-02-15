@@ -7,29 +7,29 @@ end
 
 
 # Module that represents a holiday
-# It's possible to manually set the holiday (use: holiday_value=).
-# If holiday_value was not set it delegates the method to an object
-# that is returned by calling a "date" method 
+# It's possible to manually set the holiday (see: holiday_name=).
+# If holiday_name is nil (by default) it delegates the methods is_holiday? and holiday_name
+# to an object that is returned by calling a "date" method 
 module Holiday
 	extend self
 
 	def is_holiday?
-		unless holiday_value.nil?
-			return holiday_value
-		else
-		    raise DateNotImplementedError.new unless self.respond_to?(:date)
-    		self.send(:date).is_holiday?
-		end
+		return !(@holiday_name.empty?) unless @holiday_name.nil?
+		_intern_is_holiday?
 	end 
 
 
-	def holiday_value
-		@holiday_value
+	def holiday_name
+		return @holiday_name unless @holiday_name.nil?
+		_intern_holiday_name
 	end
 
-	def holiday_value=(value)
-		raise "Wrong value type" unless [true,false,nil].include?(value)
-		@holiday_value = value
+	def holiday_name=(name)
+		if name.respond_to?(:to_s)
+			@holiday_name = name.to_s
+		else
+			@holiday_name = nil
+		end
 	end
 
 
@@ -37,8 +37,21 @@ module Holiday
 	# Holiday.configure do |config|
 	#    config.holiday_value = true
 	# end
-	def configure()
+	def configure
 		yield(self) if block_given?
+	end
+
+
+	private
+	
+	def _intern_is_holiday?
+	    raise DateNotImplementedError.new unless self.respond_to?(:date)
+   		self.send(:date).is_holiday?
+	end
+
+	def _intern_holiday_name
+	    raise DateNotImplementedError.new unless self.respond_to?(:date)
+   		self.send(:date).holiday_name
 	end
 end
 
@@ -109,9 +122,9 @@ end
 
 # Class Time is expanded to automatically identify German holidays.
 #
-# It overwrites method is_holiday? of module Holiday.
+# It overwrites private method _intern_is_holiday? of module Holiday.
 # It's still possible to set a day as a holiday manually
-# (or set a holiday as no holiday) by using holiday_value=
+# (or set a holiday as no holiday) by using holiday_name="something"
 #
 # To identify holidays by states (bundesländer) it includes Regionable.
 # is_holiday? returns false for holidays that are only holidays
@@ -122,75 +135,6 @@ end
 # of these region.
 class Time
 	include Holiday, Regionable
-
-
-	# Check if the date is a holiday
-	# If holiday_value is set to true or false, it will return its value 
-	def is_holiday? () # <= Methoden ohne Argumente ohne Klammern
-		return holiday_value unless holiday_value.nil?
-
-
-		# Neujahr (1.1. bundesweit)
-		return true if day == 1 && month == 1 
-
-		# Heilige Drei Könige (6.1. nur Baden-Württemberg, Bayern, Sachsen-Anhalt)
-		return true if day == 6 && month == 1 && (baden_wuerttemberg? || bayern? || sachsen_anhalt?) 
-		
-		# Karfreitag (bewegl. bundesweit)
-		hday = Time.easter_sunday(year).roll_days(-2)
-		return true if day == hday.day && month == hday.month
-
-		# Ostersonntag (bewegl. bundesweit)
-		#hday = Time.easter_sunday(year)
-		#return true if day == hday.day && month == hday.month
-
-		# Ostermontag (bewegl. bundesweit)
-		hday = Time.easter_sunday(year).roll_days(1)
-		return true if day == hday.day && month == hday.month
-
-		# Maifeiertag (1.5. bundesweit)
-		return true if day == 1 && month == 5 
-
-		# Christi Himmelfahrt (bewegl. bundesweit)
-		hday = Time.easter_sunday(year).roll_days(39)
-		return true if day == hday.day && month == hday.month
-
-		# Pfingstmontag (bewegl. bundesweit)
-		hday = Time.easter_sunday(year).roll_days(50)
-		return true if day == hday.day && month == hday.month
-
-		# Fronleichnam (bewgl. nur Baden-Württemberg, Bayern, Hessen, Nordrhein-Westfalen, Rheinland-Pfalz, Saarland)
-		hday = Time.easter_sunday(year).roll_days(60)
-		return true if day == hday.day && month == hday.month && (	baden_wuerttemberg? || bayern? || hessen? ||
-																	nordrhein_westfalen? || rheinland_pfalz? || saarland? )
-
-		# Mariä Himmelfahrt (15.8. nur Saarland)
-		return true if day == 15 && month == 8 && saarland?
-
-		# Tag der deutschen Einheit (3.10. bundesweit)
-		return true if day == 3 && month == 10 
-
-		# Reformationstag (31.10. nur Brandenburg, Mecklenburg-Vorpommern, Sachsen, Sachsen-Anhalt, Thüringen)
-		return true if day == 31 && month == 10 && (brandenburg? || mecklenburg_vorpommern? || sachsen? ||
-													sachsen_anhalt? || thueringen?)
-
-		# Allerheiligen (1.11. nur Baden-Württemberg, Bayern, Nordrhein-Westfalen, Rheinland-Pfalz, Saarland)
-		return true if day == 1 && month == 11 && ( baden_wuerttemberg? || bayern? || nordrhein_westfalen? ||
-													rheinland_pfalz? || saarland? )
-
-		# Buß- und Bettag (bewgl. nur Sachsen)
-		hday = Time.penance_day(year)
-		return true if day == hday.day && month == hday.month && sachsen?
-
-		# 1. Weihnachtsfeiertag (25.12. bundesweit)
-		return true if day == 25 && month == 12 
-
-		# 2. Weihnachstfeiertag (26.12. bundesweit)
-		return true if day == 26 && month == 12
-
-		# No holiday
-		return false
-	end
 
 
 	#Adds some number of days (possibly negative) to time and returns that value as a new time.
@@ -250,5 +194,126 @@ class Time
 
 		return dec25.roll_days(-7 - 32) if dec25.wday == 0 # Dec. 25th is a sunday
 		return dec25.roll_days(-dec25.wday - 32)
+	end
+
+
+	private
+
+
+	# Check if the date is a holiday
+	def _intern_is_holiday?
+
+		# Neujahr (1.1. bundesweit)
+		if day == 1 && month == 1 
+			@_intern_holiday_name = "new_years_day"
+			return true
+		end
+
+		# Heilige Drei Könige (6.1. nur Baden-Württemberg, Bayern, Sachsen-Anhalt)
+		if day == 6 && month == 1 && (baden_wuerttemberg? || bayern? || sachsen_anhalt?) 
+			@_intern_holiday_name = "twelfth_day"
+			return true
+		end
+
+		# Karfreitag (bewegl. bundesweit)
+		hday = Time.easter_sunday(year).roll_days(-2)
+		if day == hday.day && month == hday.month
+			@_intern_holiday_name = "good_friday"
+			return true
+		end
+
+		# Ostersonntag (bewegl. bundesweit)
+		#hday = Time.easter_sunday(year)
+		#if day == hday.day && month == hday.month
+		#	@_intern_holiday_name = "easter_sunday"
+		#	return true
+		#end
+
+		# Ostermontag (bewegl. bundesweit)
+		hday = Time.easter_sunday(year).roll_days(1)
+		if day == hday.day && month == hday.month
+			@_intern_holiday_name = "easter_monday"
+			return true
+		end
+
+		# Maifeiertag (1.5. bundesweit)
+		if day == 1 && month == 5 
+			@_intern_holiday_name = "may_first"
+			return true
+		end
+
+		# Christi Himmelfahrt (bewegl. bundesweit)
+		hday = Time.easter_sunday(year).roll_days(39)
+		if day == hday.day && month == hday.month
+			@_intern_holiday_name = "ascension_day"
+			return true
+		end
+
+		# Pfingstmontag (bewegl. bundesweit)
+		hday = Time.easter_sunday(year).roll_days(50)
+		if day == hday.day && month == hday.month
+			@_intern_holiday_name = "whit_monday"
+			return true
+		end
+
+		# Fronleichnam (bewgl. nur Baden-Württemberg, Bayern, Hessen, Nordrhein-Westfalen, Rheinland-Pfalz, Saarland)
+		hday = Time.easter_sunday(year).roll_days(60)
+		if day == hday.day && month == hday.month && (	baden_wuerttemberg? || bayern? || hessen? || nordrhein_westfalen? || rheinland_pfalz? || saarland? )
+			@_intern_holiday_name = "corpus_christi"
+			return true
+		end
+
+		# Mariä Himmelfahrt (15.8. nur Saarland)
+		if day == 15 && month == 8 && saarland?
+			@_intern_holiday_name = "assumption_day"
+			return true
+		end
+
+		# Tag der deutschen Einheit (3.10. bundesweit)
+		if day == 3 && month == 10 
+			@_intern_holiday_name = "german_unification_day"
+			return true
+		end
+
+		# Reformationstag (31.10. nur Brandenburg, Mecklenburg-Vorpommern, Sachsen, Sachsen-Anhalt, Thüringen)
+		if day == 31 && month == 10 && (brandenburg? || mecklenburg_vorpommern? || sachsen? || sachsen_anhalt? || thueringen?)
+			@_intern_holiday_name = "reformation_day"
+			return true
+		end
+
+		# Allerheiligen (1.11. nur Baden-Württemberg, Bayern, Nordrhein-Westfalen, Rheinland-Pfalz, Saarland)
+		if day == 1 && month == 11 && ( baden_wuerttemberg? || bayern? || nordrhein_westfalen? || rheinland_pfalz? || saarland? )
+			@_intern_holiday_name = "all_saints_day"
+			return true
+		end
+
+		# Buß- und Bettag (bewgl. nur Sachsen)
+		hday = Time.penance_day(year)
+		if day == hday.day && month == hday.month && sachsen?
+			@_intern_holiday_name = "penance_day"
+			return true
+		end
+
+		# 1. Weihnachtsfeiertag (25.12. bundesweit)
+		if day == 25 && month == 12 
+			@_intern_holiday_name = "christmas_day"
+			return true
+		end
+
+		# 2. Weihnachstfeiertag (26.12. bundesweit)
+		if day == 26 && month == 12
+			@_intern_holiday_name = "boxing_day"
+			return true
+		end
+
+		# No holiday
+		@_intern_holiday_name = ""
+		return false
+	end
+
+
+	def _intern_holiday_name
+		_intern_is_holiday?
+		@_intern_holiday_name
 	end
 end

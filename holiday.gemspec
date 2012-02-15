@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{holiday}
-  s.version = "1.0.0"
+  s.version = "1.1.0"
 
   s.authors = ["Lars Mueller"]
   s.date = %q{2012-02-06}

@@ -38,9 +38,10 @@ describe Holiday do
 
 
 	# Test different holidays in different years
-	it "1.1.2012 should be a holiday" do
+	it "1.1.2012 should be a holiday and holiday_name should be 'new_years_day'" do
 		hday = HolidayTestClass.new(1012,1,1)
 		hday.is_holiday?.should be true
+		hday.holiday_name.should eq 'new_years_day'
 	end
 
 	it "1.5.2014 should be a holiday" do
@@ -115,9 +116,9 @@ describe Holiday do
 	end
 
 
-	it "1.1.2012 should be NO holiday if holiday_value was set to false" do
+	it "1.1.2012 should be NO holiday if holiday_name was set to ''" do
 		hday = HolidayTestClass.new(2012,1,1)
-		hday.holiday_value=false
+		hday.holiday_name = ""
 		hday.is_holiday?.should be false
 	end
 
@@ -126,9 +127,10 @@ describe Holiday do
 		hday.is_holiday?.should be false
 	end
 
-	it "2.1.2012 should be a holiday if holiday_value was set to true" do
+	it "2.1.2012 should be a holiday 'One more day' if holiday_name was set to and is_holiday? should be true" do
 		hday = HolidayTestClass.new(2012,1,2)
-		hday.holiday_value=true
+		hday.holiday_name = 'One more day'
+		hday.holiday_name.should eq 'One more day'
 		hday.is_holiday?.should be true
 	end
 end
