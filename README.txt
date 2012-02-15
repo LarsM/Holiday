@@ -16,18 +16,22 @@ To use Holiday include holidy.rb into your projects.
 
 There are two different ways to use holiday:
   
-  1) It expands the class Time so every instance of the Time-Object will have the following methods:
+  1) It expands the class Time so every instance of the Time-Object will have the
+     following methods:
 
     is_holiday?
       - If no region is defined it returns true if the Time-Object represents a date
         that is a holiday throughout Germany
       - If regions (states) are defined it returns true if the Time-Object
         represents a day that is a holiday in at least one of these states
-      - If holiday_name was set to an empty string it returns false ignoring all the other factors
-      - If holiday_name was set to a non empty string it returns true ignoring all the other factors
+      - If holiday_name was set to an empty string it returns false ignoring all the
+        other factors
+      - If holiday_name was set to a non empty string it returns true ignoring all
+        the other factors
     
     holiday_name
-      - If holiday_name is set by the user (not nil) it returns its value ignoring all the other factors
+      - If holiday_name is set by the user (not nil) it returns its value ignoring
+        all the other factors
       - Otherwise it returns one of the following names if the date is a holiday
           * "new_years_day" (Neujahrstag)
           * "twelfth_day" (Heilige Drei Koenige)
@@ -46,15 +50,16 @@ There are two different ways to use holiday:
           * "christmas_day" (2. Weihnachtsfeiertag)
      
     regions=(regions)
-      - Defines the regions for this object. regions can be an array or a single region
-        (see: add_region)
+      - Defines the regions for this object. regions can be an array or a single
+        region (see: add_region)
       
     add_region(region)
       - Adds a region
-      - Use a symbol or a string to define a region. The object will f.e. respond to bayern?
-        if region is set to bayern. Correct notation of the German states is mandatory for
-        automatic recognition!
-        Right: "Baden-Wuerttemberg", "BADEN_WUERTTEMBERG", :baden_wuerttemberg, :BADEN_WUERTTEMBERG
+      - Use a symbol or a string to define a region. The object will f.e. respond
+        to bayern? if region is set to bayern. Correct notation of the German
+        states is mandatory for automatic recognition!
+        Right: "Baden-Wuerttemberg", "BADEN_WUERTTEMBERG",
+               :baden_wuerttemberg, :BADEN_WUERTTEMBERG
         Wrong: "Baden-Württemberg", :badenwuerttemberg, "BW"
 
     regions
@@ -67,7 +72,8 @@ There are two different ways to use holiday:
       - Makes it more readable to configure the object.
       - Use like:
           obj.configure do |config|
-            config.regions = %w{Brandenburg Thueringen Sachsen Sachsen-Anhalt Mecklenburg-Vorpommern}
+            config.regions = 
+            %w{Brandenburg Thueringen Sachsen Sachsen-Anhalt Mecklenburg-Vorpommern}
           end
 
     easter_sunday(year)
@@ -78,9 +84,9 @@ There are two different ways to use holiday:
 
 
   2) Defines a Module holiday.
-     A class that does mixin holiday should have a method "date" that returns a Time-Object.
-     If not: is_holiday? and holiday_name will raise a DateNotImplementedError if holiday_name
-     is not set by the user (nil)  
+     A class that does mixin holiday should have a method "date" that returns
+     a Time-Object. If not: is_holiday? and holiday_name will raise a
+     DateNotImplementedError if holiday_name is not set by the user (=nil)  
 
     is_holiday?
       - By default it delegates is_holiday to the object returned by "date"
@@ -89,7 +95,8 @@ There are two different ways to use holiday:
       
     holiday_name
       - By default it delegates holiday_name to the object returned by "date"
-      - If holiday_name was defined by holiday_name= (not nil) it returns its value ignoring the date-object
+      - If holiday_name was defined by holiday_name= (not nil) it returns
+        its value ignoring the date-object
 
 
     holiday_name=
