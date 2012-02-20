@@ -47,7 +47,7 @@ There are two different ways to use holiday:
           * "all_saints_day" (Allerheiligen)
           * "penance_day" (Buss- und Bettag)
           * "christmas_day" (1. Weihnachtsfeiertag)
-          * "christmas_day" (2. Weihnachtsfeiertag)
+          * "boxing_day" (2. Weihnachtsfeiertag)
      
     regions=(regions)
       - Defines the regions for this object. regions can be an array or a single

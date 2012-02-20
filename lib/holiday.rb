@@ -1,3 +1,7 @@
+require "active_support/core_ext"
+
+
+
 class DateNotImplementedError < StandardError
 
 	def message
@@ -132,16 +136,9 @@ end
 #
 # If there are more than one region defined (f.e. [:sachsen, :bayern])
 # is_holiday? returns true if the day is a holiday in at least one
-# of these region.
+# of these regions.
 class Time
 	include Holiday, Regionable
-
-
-	#Adds some number of days (possibly negative) to time and returns that value as a new time.
-	def roll_days (number_of_days)
-		raise "Wrong number_of_days type" unless number_of_days.is_a?(Fixnum)
-		self + number_of_days * 24 * 60 * 60 # days in seconds
-	end
 
 
 	# Returns the date of easter sunday of a given year
@@ -184,7 +181,7 @@ class Time
 
 		e = (2 * b + 4 * c + 6 * dd + nn) % 7
 
-		Time.local(year, 3, 21).roll_days(dd + e + 1)
+		Time.local(year, 3, 21) + (dd + e + 1).days
 	end
 
 
@@ -192,8 +189,8 @@ class Time
 	def self.penance_day (year)
 		dec25 = Time.local(year, 12, 25)
 
-		return dec25.roll_days(-7 - 32) if dec25.wday == 0 # Dec. 25th is a sunday
-		return dec25.roll_days(-dec25.wday - 32)
+		return dec25 - (7 + 32).days if dec25.wday == 0 # Dec. 25th is a sunday
+		return dec25 - (dec25.wday + 32).days
 	end
 
 
@@ -216,7 +213,7 @@ class Time
 		end
 
 		# Karfreitag (bewegl. bundesweit)
-		hday = Time.easter_sunday(year).roll_days(-2)
+		hday = Time.easter_sunday(year) - 2.days
 		if day == hday.day && month == hday.month
 			@_intern_holiday_name = "good_friday"
 			return true
@@ -230,7 +227,7 @@ class Time
 		#end
 
 		# Ostermontag (bewegl. bundesweit)
-		hday = Time.easter_sunday(year).roll_days(1)
+		hday = Time.easter_sunday(year) + 1.day
 		if day == hday.day && month == hday.month
 			@_intern_holiday_name = "easter_monday"
 			return true
@@ -243,21 +240,21 @@ class Time
 		end
 
 		# Christi Himmelfahrt (bewegl. bundesweit)
-		hday = Time.easter_sunday(year).roll_days(39)
+		hday = Time.easter_sunday(year) + 39.days
 		if day == hday.day && month == hday.month
 			@_intern_holiday_name = "ascension_day"
 			return true
 		end
 
 		# Pfingstmontag (bewegl. bundesweit)
-		hday = Time.easter_sunday(year).roll_days(50)
+		hday = Time.easter_sunday(year) + 50.days
 		if day == hday.day && month == hday.month
 			@_intern_holiday_name = "whit_monday"
 			return true
 		end
 
 		# Fronleichnam (bewgl. nur Baden-Württemberg, Bayern, Hessen, Nordrhein-Westfalen, Rheinland-Pfalz, Saarland)
-		hday = Time.easter_sunday(year).roll_days(60)
+		hday = Time.easter_sunday(year) + 60.days
 		if day == hday.day && month == hday.month && (	baden_wuerttemberg? || bayern? || hessen? || nordrhein_westfalen? || rheinland_pfalz? || saarland? )
 			@_intern_holiday_name = "corpus_christi"
 			return true

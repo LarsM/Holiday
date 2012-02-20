@@ -1,10 +1,9 @@
-#*.gem
-.bundle
 .DS_Store
 ./lib/.DS_Store
-./test/.DS_Store
-./test/rspec.html
-./test/holidays_by_daniel.rb
-./test/test.rb
+./test/*.*
+!./test/holiday_spec.rb
+
+*.gem
+.bundle
 Gemfile.lock
 pkg/*
